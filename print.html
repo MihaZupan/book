@@ -659,7 +659,32 @@ in test configurations before hand.</p>
 </code></pre>
 <a class="header" href="#inline-mode" id="inline-mode"><h1>Inline Mode</h1></a>
 <a class="header" href="#working-with-files" id="working-with-files"><h1>Working with Files</h1></a>
-<a class="header" href="#download" id="download"><h1>Download</h1></a>
+<p>First, read the <a href="https://core.telegram.org/bots/api#getfile">documentation on <code>getFile</code></a>.</p>
+<p>To download a file you will need its ID.</p>
+<a class="header" href="#finding-the-fileid" id="finding-the-fileid"><h2>Finding the FileId</h2></a>
+<p>There are many file objects in the Telegram Bot API:
+<a href="https://core.telegram.org/bots/api#document"><code>Document</code></a>, <a href="https://core.telegram.org/bots/api#audio"><code>Audio</code></a>, <a href="https://core.telegram.org/bots/api#voice"><code>Voice</code></a>, <a href="https://core.telegram.org/bots/api#video"><code>Video</code></a>, <a href="https://core.telegram.org/bots/api#videonote"><code>VideoNote</code></a>, <a href="https://core.telegram.org/bots/api#animation"><code>Animation</code></a>, <a href="https://core.telegram.org/bots/api#sticker"><code>Sticker</code></a>, <code>Photo</code>.</p>
+<p>The FileId for each will be found in their <code>FileId</code> property (E.g. <code>Message.Audio.FileId</code>).</p>
+<p>The exception to that is the Photo, which is a <a href="https://core.telegram.org/bots/api#photosize"><code>PhotoSize[]</code></a>.
+Telegram sends you a few different resolutions for each photo that you can choose from.
+Generaly, you will want the highest quality - the last <a href="https://core.telegram.org/bots/api#photosize"><code>PhotoSize</code></a> in the array.
+Using Linq, this boils down to <code>Message.Photo.Last().FileId</code>.</p>
+<a class="header" href="#downloading-a-file" id="downloading-a-file"><h2>Downloading a file</h2></a>
+<p>Downloading a file from Telegram servers is done in two steps:</p>
+<ol>
+<li>Calling <code>getFile</code> to receive a URL from which we can download the file</li>
+<li>Downloading the file</li>
+</ol>
+<p>Calling <code>Bot.GetFileAsync(fileId)</code> will return a <a href="https://core.telegram.org/bots/api#file"><code>File</code></a> object that contains a <code>file_path</code>.</p>
+<p>The URL from which you can now download the file is <code>https://api.telegram.org/file/bot&lt;token&gt;/&lt;file_path&gt;</code>.</p>
+<p>The library provides you with a helper function that does both - <code>GetInfoAndDownloadFileAsync</code>.</p>
+<a class="header" href="#downloading-into-a-filestream" id="downloading-into-a-filestream"><h2>Downloading into a FileStream</h2></a>
+<pre><code class="language-csharp">using (FileStream fs = System.IO.File.OpenWrite(&quot;File.pdf&quot;))
+    await Bot.GetInfoAndDownloadFileAsync(message.Document.FileId, fs);
+</code></pre>
+<a class="header" href="#downloading-to-a-byte-array" id="downloading-to-a-byte-array"><h2>Downloading to a byte array</h2></a>
+<pre><code class="language-csharp">byte[] document = await Bot.GetInfoAndDownloadFileAsync(message.Document.FileId);
+</code></pre>
 <p>First, read the <a href="https://core.telegram.org/bots/api#sending-files">documentation on sending files</a>.</p>
 <a class="header" href="#uploading-the-actual-file" id="uploading-the-actual-file"><h2>Uploading the actual file</h2></a>
 <pre><code class="language-csharp">using (FileStream fs = System.IO.File.OpenRead(&quot;Local file.pdf&quot;))
